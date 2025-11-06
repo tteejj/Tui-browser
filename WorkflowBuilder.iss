@@ -319,6 +319,8 @@ Function LoadFieldLists(db As Object)
 End Function
 
 Function WorkflowBuilderDisplay(controlID$, action%, suppValue%)
+    Dim chosenDB As String
+
     Select Case action
         Case 1
             LoadDbCollection
@@ -367,7 +369,6 @@ Function WorkflowBuilderDisplay(controlID$, action%, suppValue%)
                     UpdateValidationDisplay
 
                 Case "btnChoosedb"
-                    Dim chosenDB As String
                     chosenDB = BrowseForFile
                     If chosenDB <> "" Then
                         selectedDBTextValue = chosenDB
@@ -685,8 +686,10 @@ End Function
 Sub SaveWorkflow
     Dim filename As String
     Dim fileNum As Integer
+    Dim timestamp As String
 
-    filename = Client.WorkingDirectory & "Workflow_" & iStr(Year(Now)) & iStr(Month(Now)) & iStr(Day(Now)) & "_" & iStr(Hour(Now)) & iStr(Minute(Now)) & iStr(Second(Now)) & ".wf"
+    timestamp = iStr(Year(Now)) & "_" & iStr(Month(Now)) & "_" & iStr(Day(Now)) & "_" & iStr(Hour(Now)) & "_" & iStr(Minute(Now)) & "_" & iStr(Second(Now))
+    filename = Client.WorkingDirectory & "Workflow_" & timestamp & ".wf"
 
     On Error Resume Next
     fileNum = FreeFile
@@ -837,6 +840,8 @@ Sub LoadWorkflow
 End Sub
 
 Sub ExecuteWorkflow
+    Dim i As Double
+
     GetDialogValues
     CollectActiveSteps
 
@@ -849,7 +854,6 @@ Sub ExecuteWorkflow
     executionLog = "Starting workflow..." & vbcrlf
     lastResultDB = selectedDBTextValue
 
-    Dim i As Double
     For i = 1 To 5
         ExecuteStep i
     Next i
@@ -1080,11 +1084,11 @@ Function ExecuteJoin(db As Object, priDBName As String, priKey As String, target
     Else
         If dbIndex > 0 Then
             forDBName = dblist(dbIndex)
+            forKey = iTrim(params)
         Else
             forDBName = params
             forKey = priKey
         End If
-        forKey = iTrim(params)
     End If
 
     Set task = db.JoinDatabase
