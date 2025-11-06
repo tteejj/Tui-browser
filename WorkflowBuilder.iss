@@ -119,7 +119,11 @@ Begin Dialog WorkflowBuilder 29,0,750,520," ", .WorkflowBuilderDisplay
     CheckBox 560,153,20,12,"",.Active5
 
     GroupBox 10,180,730,110,"Operation Help"
-    Text 20,195,710,85,"FIELD OPS: @TRIM @UPPER @LOWER @LEFT(n) @RIGHT(n) @MID(start,len) @ABS @ROUND(dec) @INT @YEAR @MONTH @DAY" & Chr(13) & Chr(10) & "DATABASE OPS: JOIN(db,prikey,forkey) EXTRACT(criteria) SORT(field,A/D) SUMMARIZE(field) INDEX(field)" & Chr(13) & Chr(10) & "CUSTOM OPS: REGEX(pattern,replacement) FILLDOWN APPEND(db)" & Chr(13) & Chr(10) & "MULTI-JOIN: Use JOIN multiple times, output becomes input for next step" & Chr(13) & Chr(10) & "Variables: Use {RESULT1} {RESULT2} etc in params to reference prior step outputs", .lblHelp
+    Text 20,195,710,15,"FIELD OPS: @TRIM @UPPER @LOWER @LEFT(n) @RIGHT(n) @MID(start,len) @ABS @ROUND(dec) @INT @YEAR @MONTH @DAY"
+    Text 20,212,710,15,"DATABASE OPS: JOIN(db,prikey,forkey) EXTRACT(criteria) SORT(field,A/D) SUMMARIZE(field) INDEX(field)"
+    Text 20,229,710,15,"CUSTOM OPS: REGEX(pattern,replacement) FILLDOWN APPEND(db)"
+    Text 20,246,710,15,"MULTI-JOIN: Use JOIN multiple times, output becomes input for next step"
+    Text 20,263,710,15,"Variables: Use {RESULT1} {RESULT2} etc in params to reference prior step outputs"
 
     GroupBox 10,295,730,90,"Execution Log"
     Text 20,310,710,70," ", .lblLog
