@@ -58,7 +58,7 @@ Dim step5Target As String
 Dim step5Active As Double
 
 Dim activeSteps As Double
-Dim ExitScript As Boolean
+Dim ExitScript As Double
 Dim choice As Integer
 Dim executionLog As String
 Dim lastResultDB As String
@@ -119,7 +119,11 @@ Begin Dialog WorkflowBuilder 29,0,750,520," ", .WorkflowBuilderDisplay
     CheckBox 560,153,20,12,"",.Active5
 
     GroupBox 10,180,730,110,"Operation Help"
-    Text 20,195,710,85,"FIELD OPS: @TRIM @UPPER @LOWER @LEFT(n) @RIGHT(n) @MID(start,len) @ABS @ROUND(dec) @INT @YEAR @MONTH @DAY" & Chr(13) & Chr(10) & "DATABASE OPS: JOIN(db,prikey,forkey) EXTRACT(criteria) SORT(field,A/D) SUMMARIZE(field) INDEX(field)" & Chr(13) & Chr(10) & "CUSTOM OPS: REGEX(pattern,replacement) FILLDOWN APPEND(db)" & Chr(13) & Chr(10) & "MULTI-JOIN: Use JOIN multiple times, output becomes input for next step" & Chr(13) & Chr(10) & "Variables: Use {RESULT1} {RESULT2} etc in params to reference prior step outputs", .lblHelp
+    Text 20,195,710,15,"FIELD OPS: @TRIM @UPPER @LOWER @LEFT(n) @RIGHT(n) @MID(start,len) @ABS @ROUND(dec) @INT @YEAR @MONTH @DAY"
+    Text 20,212,710,15,"DATABASE OPS: JOIN(db,prikey,forkey) EXTRACT(criteria) SORT(field,A/D) SUMMARIZE(field) INDEX(field)"
+    Text 20,229,710,15,"CUSTOM OPS: REGEX(pattern,replacement) FILLDOWN APPEND(db)"
+    Text 20,246,710,15,"MULTI-JOIN: Use JOIN multiple times, output becomes input for next step"
+    Text 20,263,710,15,"Variables: Use {RESULT1} {RESULT2} etc in params to reference prior step outputs"
 
     GroupBox 10,295,730,90,"Execution Log"
     Text 20,310,710,70," ", .lblLog
@@ -144,23 +148,23 @@ Sub Main
     Do
         choice = Dialog(dlgWorkflowBuilderInstance)
         If choice = 0 Then
-            ExitScript = True
+            ExitScript = 1
         End If
 
-        If ExitScript = False Then
+        If ExitScript = 0 Then
             ExecuteWorkflow
         End If
         Client.RefreshFileExplorer
-    Loop Until ExitScript
+    Loop Until ExitScript = 1
 
     If executionLog <> "" Then
-        MsgBox "Workflow completed." & vbcrlf & vbcrlf & executionLog, MB_ICONINFORMATION, "Workflow Complete"
+        MsgBox "Workflow completed." & vbcrlf & vbcrlf & executionLog, 64, "Workflow Complete"
     End If
 End Sub
 
 Sub Init
     vbcrlf = Chr(13) & Chr(10)
-    ExitScript = False
+    ExitScript = 0
     activeSteps = 0
     executionLog = ""
     lastResultDB = ""
@@ -315,6 +319,8 @@ Function LoadFieldLists(db As Object)
 End Function
 
 Function WorkflowBuilderDisplay(controlID$, action%, suppValue%)
+    Dim chosenDB As String
+
     Select Case action
         Case 1
             LoadDbCollection
@@ -363,7 +369,6 @@ Function WorkflowBuilderDisplay(controlID$, action%, suppValue%)
                     UpdateValidationDisplay
 
                 Case "btnChoosedb"
-                    Dim chosenDB As String
                     chosenDB = BrowseForFile
                     If chosenDB <> "" Then
                         selectedDBTextValue = chosenDB
@@ -446,11 +451,11 @@ Function WorkflowBuilderDisplay(controlID$, action%, suppValue%)
                 Case "btnOK"
                     GetDialogValues
                     WorkflowBuilderDisplay = 0
-                    ExitScript = False
+                    ExitScript = 0
 
                 Case "btnCancel"
                     WorkflowBuilderDisplay = 0
-                    ExitScript = True
+                    ExitScript = 1
 
             End Select
     End Select
@@ -591,7 +596,7 @@ Sub ShowPreview
         preview = preview & GetStepPreview(i)
     Next i
 
-    MsgBox preview, MB_ICONINFORMATION, "Workflow Preview"
+    MsgBox preview, 64, "Workflow Preview"
 End Sub
 
 Function GetStepPreview(stepNum As Double) As String
@@ -681,8 +686,10 @@ End Function
 Sub SaveWorkflow
     Dim filename As String
     Dim fileNum As Integer
+    Dim timestamp As String
 
-    filename = Client.UniqueFileName(Client.WorkingDirectory & "Workflow_" & Format(Now, "YYYYMMDD_HHMMSS") & ".wf")
+    timestamp = iStr(Year(Now)) & "_" & iStr(Month(Now)) & "_" & iStr(Day(Now)) & "_" & iStr(Hour(Now)) & "_" & iStr(Minute(Now)) & "_" & iStr(Second(Now))
+    filename = Client.WorkingDirectory & "Workflow_" & timestamp & ".wf"
 
     On Error Resume Next
     fileNum = FreeFile
@@ -707,9 +714,9 @@ Sub SaveWorkflow
     Close fileNum
 
     If Err.Number = 0 Then
-        MsgBox "Workflow saved: " & GetBaseName(filename), MB_ICONINFORMATION
+        MsgBox "Workflow saved: " & GetBaseName(filename), 64
     Else
-        MsgBox "Error saving workflow: " & Err.Description, MB_ICONERROR
+        MsgBox "Error saving workflow: " & Err.Description, 16
     End If
     On Error GoTo 0
 End Sub
@@ -730,7 +737,7 @@ Sub LoadWorkflow
 
     Line Input #fileNum, version
     If version <> "WORKFLOW v1.0" Then
-        MsgBox "Invalid workflow file format", MB_ICONERROR
+        MsgBox "Invalid workflow file format", 16
         Close fileNum
         Exit Sub
     End If
@@ -825,27 +832,28 @@ Sub LoadWorkflow
         dlgtext "Target4", step4Target
         dlgtext "Target5", step5Target
 
-        MsgBox "Workflow loaded successfully", MB_ICONINFORMATION
+        MsgBox "Workflow loaded successfully", 64
     Else
-        MsgBox "Error loading workflow: " & Err.Description, MB_ICONERROR
+        MsgBox "Error loading workflow: " & Err.Description, 16
     End If
     On Error GoTo 0
 End Sub
 
 Sub ExecuteWorkflow
+    Dim i As Double
+
     GetDialogValues
     CollectActiveSteps
 
     If activeSteps = 0 Then
-        MsgBox "No active steps selected", MB_ICONWARNING
-        ExitScript = True
+        MsgBox "No active steps selected", 48
+        ExitScript = 1
         Exit Sub
     End If
 
     executionLog = "Starting workflow..." & vbcrlf
     lastResultDB = selectedDBTextValue
 
-    Dim i As Double
     For i = 1 To 5
         ExecuteStep i
     Next i
@@ -874,7 +882,7 @@ Sub ExecuteStep(stepNum As Double)
     Dim fieldName As String
     Dim isActive As Double
     Dim dbName As String
-    Dim success As Boolean
+    Dim success As Double
 
     Select Case stepNum
         Case 1
@@ -958,7 +966,7 @@ Sub ExecuteStep(stepNum As Double)
     executionLog = executionLog & "Step " & stepNum & ": " & operationTypes(opIndex) & " "
 
     ' Execute operation
-    success = False
+    success = 0
     If opIndex <= 11 Then
         ' Field operations
         success = ExecuteFieldOperation(workingDB, opIndex, fieldName, targetName, params)
@@ -988,14 +996,14 @@ Sub ExecuteStep(stepNum As Double)
         success = ExecuteAppend(workingDB, targetName, params, dbIndex)
     End If
 
-    If success Then
-        executionLog = executionLog & "✓ OK" & vbcrlf
+    If success = 1 Then
+        executionLog = executionLog & "OK" & vbcrlf
         ' Update last result for chaining
         If targetName <> "" Then
             lastResultDB = Client.WorkingDirectory & targetName & ".IMD"
         End If
     Else
-        executionLog = executionLog & "✗ FAILED" & vbcrlf
+        executionLog = executionLog & "FAILED" & vbcrlf
     End If
 
     dlgtext "lblLog", executionLog
@@ -1005,17 +1013,28 @@ End Sub
 Function ResolveVariables(params As String) As String
     Dim result As String
     Dim i As Double
+    Dim searchStr As String
+    Dim replaceStr As String
+    Dim pos As Double
 
     result = params
 
     For i = 1 To 5
-        result = Replace(result, "{RESULT" & i & "}", Client.WorkingDirectory & "RESULT" & i & ".IMD")
+        searchStr = "{RESULT" & i & "}"
+        replaceStr = Client.WorkingDirectory & "RESULT" & i & ".IMD"
+
+        ' Manual replace since Replace() may not be available
+        pos = iIsIni(searchStr, result)
+        Do While pos > 0
+            result = iMid(result, 1, pos - 1) & replaceStr & iMid(result, pos + iLen(searchStr))
+            pos = iIsIni(searchStr, result)
+        Loop
     Next i
 
     ResolveVariables = result
 End Function
 
-Function ExecuteFieldOperation(db As Object, opIndex As Double, fieldName As String, targetName As String, params As String) As Boolean
+Function ExecuteFieldOperation(db As Object, opIndex As Double, fieldName As String, targetName As String, params As String) As Double
     On Error GoTo ErrorHandler
 
     Dim task As Object
@@ -1042,14 +1061,14 @@ Function ExecuteFieldOperation(db As Object, opIndex As Double, fieldName As Str
     task.PerformTask
 
     Set task = Nothing
-    ExecuteFieldOperation = True
+    ExecuteFieldOperation = 1
     Exit Function
 
 ErrorHandler:
-    ExecuteFieldOperation = False
+    ExecuteFieldOperation = 0
 End Function
 
-Function ExecuteJoin(db As Object, priDBName As String, priKey As String, targetName As String, params As String, dbIndex As Double) As Boolean
+Function ExecuteJoin(db As Object, priDBName As String, priKey As String, targetName As String, params As String, dbIndex As Double) As Double
     On Error GoTo ErrorHandler
 
     Dim task As Object
@@ -1065,11 +1084,11 @@ Function ExecuteJoin(db As Object, priDBName As String, priKey As String, target
     Else
         If dbIndex > 0 Then
             forDBName = dblist(dbIndex)
+            forKey = iTrim(params)
         Else
             forDBName = params
             forKey = priKey
         End If
-        forKey = iTrim(params)
     End If
 
     Set task = db.JoinDatabase
@@ -1081,14 +1100,14 @@ Function ExecuteJoin(db As Object, priDBName As String, priKey As String, target
     task.PerformTask db, targetName
 
     Set task = Nothing
-    ExecuteJoin = True
+    ExecuteJoin = 1
     Exit Function
 
 ErrorHandler:
-    ExecuteJoin = False
+    ExecuteJoin = 0
 End Function
 
-Function ExecuteExtract(db As Object, targetName As String, criteria As String) As Boolean
+Function ExecuteExtract(db As Object, targetName As String, criteria As String) As Double
     On Error GoTo ErrorHandler
 
     Dim task As Object
@@ -1099,22 +1118,22 @@ Function ExecuteExtract(db As Object, targetName As String, criteria As String) 
     task.PerformTask 1, db.Count
 
     Set task = Nothing
-    ExecuteExtract = True
+    ExecuteExtract = 1
     Exit Function
 
 ErrorHandler:
-    ExecuteExtract = False
+    ExecuteExtract = 0
 End Function
 
-Function ExecuteSort(db As Object, fieldName As String, targetName As String, sortOrder As String) As Boolean
+Function ExecuteSort(db As Object, fieldName As String, targetName As String, sortOrder As String) As Double
     On Error GoTo ErrorHandler
 
     Dim task As Object
-    Dim ascending As Boolean
+    Dim ascending As Double
 
-    ascending = True
+    ascending = 1
     If iUpper(iTrim(sortOrder)) = "D" Or iUpper(iTrim(sortOrder)) = "DESC" Then
-        ascending = False
+        ascending = 0
     End If
 
     Set task = db.Sort
@@ -1123,14 +1142,14 @@ Function ExecuteSort(db As Object, fieldName As String, targetName As String, so
     task.PerformTask
 
     Set task = Nothing
-    ExecuteSort = True
+    ExecuteSort = 1
     Exit Function
 
 ErrorHandler:
-    ExecuteSort = False
+    ExecuteSort = 0
 End Function
 
-Function ExecuteSummarize(db As Object, fieldName As String, targetName As String) As Boolean
+Function ExecuteSummarize(db As Object, fieldName As String, targetName As String) As Double
     On Error GoTo ErrorHandler
 
     Dim task As Object
@@ -1141,14 +1160,14 @@ Function ExecuteSummarize(db As Object, fieldName As String, targetName As Strin
     task.PerformTask
 
     Set task = Nothing
-    ExecuteSummarize = True
+    ExecuteSummarize = 1
     Exit Function
 
 ErrorHandler:
-    ExecuteSummarize = False
+    ExecuteSummarize = 0
 End Function
 
-Function ExecuteIndex(db As Object, fieldName As String, targetName As String) As Boolean
+Function ExecuteIndex(db As Object, fieldName As String, targetName As String) As Double
     On Error GoTo ErrorHandler
 
     Dim task As Object
@@ -1159,14 +1178,14 @@ Function ExecuteIndex(db As Object, fieldName As String, targetName As String) A
     task.CreateIndex
 
     Set task = Nothing
-    ExecuteIndex = True
+    ExecuteIndex = 1
     Exit Function
 
 ErrorHandler:
-    ExecuteIndex = False
+    ExecuteIndex = 0
 End Function
 
-Function ExecuteRegex(db As Object, fieldName As String, targetName As String, params As String) As Boolean
+Function ExecuteRegex(db As Object, fieldName As String, targetName As String, params As String) As Double
     On Error GoTo ErrorHandler
 
     Dim task As Object
@@ -1177,7 +1196,7 @@ Function ExecuteRegex(db As Object, fieldName As String, targetName As String, p
 
     ' Parse params: pattern,replacement
     If iIsIni(",", params) > 0 Then
-        paramsArr = Split(params, ",", 2)
+        paramsArr = Split(params, ",")
         pattern = iTrim(paramsArr(0))
         If UBound(paramsArr) >= 1 Then
             replacement = iTrim(paramsArr(1))
@@ -1198,14 +1217,14 @@ Function ExecuteRegex(db As Object, fieldName As String, targetName As String, p
     task.PerformTask
 
     Set task = Nothing
-    ExecuteRegex = True
+    ExecuteRegex = 1
     Exit Function
 
 ErrorHandler:
-    ExecuteRegex = False
+    ExecuteRegex = 0
 End Function
 
-Function ExecuteFillDown(db As Object, fieldName As String, targetName As String) As Boolean
+Function ExecuteFillDown(db As Object, fieldName As String, targetName As String) As Double
     On Error GoTo ErrorHandler
 
     Dim task As Object
@@ -1216,14 +1235,14 @@ Function ExecuteFillDown(db As Object, fieldName As String, targetName As String
     task.PerformTask
 
     Set task = Nothing
-    ExecuteFillDown = True
+    ExecuteFillDown = 1
     Exit Function
 
 ErrorHandler:
-    ExecuteFillDown = False
+    ExecuteFillDown = 0
 End Function
 
-Function ExecuteAppend(db As Object, targetName As String, params As String, dbIndex As Double) As Boolean
+Function ExecuteAppend(db As Object, targetName As String, params As String, dbIndex As Double) As Double
     On Error GoTo ErrorHandler
 
     Dim task As Object
@@ -1234,7 +1253,7 @@ Function ExecuteAppend(db As Object, targetName As String, params As String, dbI
     ElseIf dbIndex > 0 Then
         appendDBName = dblist(dbIndex)
     Else
-        ExecuteAppend = False
+        ExecuteAppend = 0
         Exit Function
     End If
 
@@ -1244,11 +1263,11 @@ Function ExecuteAppend(db As Object, targetName As String, params As String, dbI
     task.PerformTask
 
     Set task = Nothing
-    ExecuteAppend = True
+    ExecuteAppend = 1
     Exit Function
 
 ErrorHandler:
-    ExecuteAppend = False
+    ExecuteAppend = 0
 End Function
 
 Function BrowseForFile() As String
