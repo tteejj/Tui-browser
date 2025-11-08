@@ -1,6 +1,11 @@
 # RPi Local Chat
 
-A lightweight, local network-only chat application designed for Raspberry Pi Zero 2 W. Features PIN-based authentication, image sharing, YouTube link previews, and real-time messaging.
+A lightweight, local network-only chat application designed for Raspberry Pi Zero 2 W and other Linux systems. Features PIN-based authentication, image sharing, YouTube link previews, and real-time messaging.
+
+Works on:
+- **Raspberry Pi** (Zero 2 W, 3, 4, 5, etc.)
+- **x86/x86_64 Linux** (Debian, Ubuntu, Void Linux, etc.)
+- **ARM Linux** devices
 
 ## Features
 
@@ -14,8 +19,9 @@ A lightweight, local network-only chat application designed for Raspberry Pi Zer
 
 ## Hardware Requirements
 
-- Raspberry Pi Zero 2 W (or any RPi)
-- MicroSD card (8GB minimum)
+- **Raspberry Pi**: Zero 2 W, 3, 4, 5, or any model
+- **x86/x86_64 PC**: Any Linux-capable computer
+- Storage: 8GB minimum
 - Power supply
 - Local network (WiFi or Ethernet)
 
@@ -23,10 +29,31 @@ A lightweight, local network-only chat application designed for Raspberry Pi Zer
 
 - Python 3.7 or higher
 - pip (Python package manager)
+- Linux operating system (Raspberry Pi OS, Debian, Ubuntu, Void Linux, etc.)
 
 ## Installation
 
-### 1. Prepare Your Raspberry Pi
+Choose the installation method for your operating system:
+
+### Quick Install (Automated)
+
+**For Raspberry Pi OS / Debian / Ubuntu:**
+```bash
+cd rpi-local-chat
+./setup.sh
+```
+
+**For Void Linux (x86/ARM):**
+```bash
+cd rpi-local-chat
+./setup-void.sh
+```
+
+### Manual Installation
+
+#### For Raspberry Pi OS / Debian / Ubuntu
+
+##### 1. Prepare Your System
 
 ```bash
 # Update system
@@ -39,7 +66,7 @@ sudo apt install python3 python3-pip python3-venv -y
 sudo apt install libjpeg-dev zlib1g-dev -y
 ```
 
-### 2. Download and Set Up the Application
+##### 2. Download and Set Up the Application
 
 ```bash
 # Create app directory
@@ -61,7 +88,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Initialize the Application
+##### 3. Initialize the Application
 
 ```bash
 # Initialize database and generate PIN
@@ -71,7 +98,7 @@ python3 auth.py
 
 This will display your 6-digit PIN. **Save this PIN** - you'll need it to access the chat.
 
-### 4. Run the Server
+##### 4. Run the Server
 
 ```bash
 # Make sure virtual environment is activated
@@ -88,13 +115,80 @@ The server will start on port 5000. You'll see output like:
 Access the chat at: http://<your-rpi-ip>:5000
 ```
 
-### 5. Find Your Raspberry Pi's IP Address
+##### 5. Find Your IP Address
 
 ```bash
 hostname -I
 ```
 
 Use the first IP address shown (usually starts with 192.168.x.x or 10.0.x.x)
+
+#### For Void Linux (x86/x86_64/ARM)
+
+##### 1. Prepare Your System
+
+```bash
+# Update system
+sudo xbps-install -Su
+
+# Install Python and required system packages
+sudo xbps-install -Sy python3 python3-pip python3-virtualenv
+
+# Install image processing dependencies
+sudo xbps-install -Sy libjpeg-turbo-devel zlib-devel
+```
+
+##### 2. Download and Set Up the Application
+
+```bash
+# Create app directory
+mkdir -p ~/apps
+cd ~/apps
+
+# Copy the rpi-local-chat folder to your system
+# (Use git clone if hosted on Git)
+
+cd rpi-local-chat
+
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Install Python dependencies
+pip install -r requirements.txt
+```
+
+##### 3. Initialize the Application
+
+```bash
+# Initialize database and generate PIN
+python3 database.py
+python3 auth.py
+```
+
+This will display your 6-digit PIN. **Save this PIN** - you'll need it to access the chat.
+
+##### 4. Run the Server
+
+```bash
+# Make sure virtual environment is activated
+source venv/bin/activate
+
+# Start the server
+python3 server.py
+```
+
+##### 5. Find Your IP Address
+
+```bash
+hostname -I
+# or
+ip addr show
+```
+
+Use the first non-localhost IP address shown.
 
 ## Usage
 
@@ -139,13 +233,15 @@ Click on a channel name in the left sidebar to switch between:
 
 To have the chat server start automatically on boot:
 
-### 1. Create systemd service file
+### For systemd-based systems (Raspberry Pi OS, Debian, Ubuntu)
+
+#### 1. Create systemd service file
 
 ```bash
 sudo nano /etc/systemd/system/rpi-chat.service
 ```
 
-### 2. Add this content (adjust paths as needed):
+#### 2. Add this content (adjust paths as needed):
 
 ```ini
 [Unit]
@@ -165,7 +261,7 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-### 3. Enable and start the service
+#### 3. Enable and start the service
 
 ```bash
 sudo systemctl daemon-reload
@@ -177,6 +273,40 @@ sudo systemctl status rpi-chat
 
 # View logs
 sudo journalctl -u rpi-chat -f
+```
+
+### For runit-based systems (Void Linux)
+
+#### 1. Create runit service directory
+
+```bash
+sudo mkdir -p /etc/sv/rpi-chat
+```
+
+#### 2. Create run script
+
+```bash
+sudo nano /etc/sv/rpi-chat/run
+```
+
+Add this content (adjust paths and username):
+
+```bash
+#!/bin/sh
+exec chpst -u yourusername /home/yourusername/apps/rpi-local-chat/venv/bin/python3 /home/yourusername/apps/rpi-local-chat/server.py 2>&1
+```
+
+#### 3. Make it executable and enable the service
+
+```bash
+sudo chmod +x /etc/sv/rpi-chat/run
+sudo ln -s /etc/sv/rpi-chat /var/service/
+
+# Check status
+sudo sv status rpi-chat
+
+# View logs (if you set up logging)
+sudo svlogtail rpi-chat
 ```
 
 ## Configuration
@@ -259,6 +389,9 @@ rpi-local-chat/
 ├── database.py         # Database models and operations
 ├── auth.py            # Authentication (PIN management)
 ├── requirements.txt   # Python dependencies
+├── setup.sh           # Automated setup for Debian/Ubuntu/RPi OS
+├── setup-void.sh      # Automated setup for Void Linux
+├── run.sh             # Quick start script
 ├── README.md          # This file
 ├── static/
 │   ├── css/
