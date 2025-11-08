@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPi Local Chat</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <h1>🔐 RPi Local Chat</h1>
+            <p class="subtitle">Enter PIN to access the chat</p>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="text" id="usernameInput" placeholder="Your username" required maxlength="20" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="pinInput" placeholder="6-digit PIN" required maxlength="6" pattern="[0-9]{6}" autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-primary">Join Chat</button>
+                <div id="loginError" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div id="chatScreen" class="screen">
+        <div class="chat-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Channels</h2>
+                    <span id="currentUser" class="user-badge"></span>
+                </div>
+                <div id="channelList" class="channel-list">
+                    <!-- Channels will be populated here -->
+                </div>
+                <div class="sidebar-footer">
+                    <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="main-content">
+                <div class="chat-header">
+                    <h2 id="currentChannelName">#general</h2>
+                    <p id="currentChannelDesc" class="channel-description">General chat for everything</p>
+                </div>
+
+                <div id="messageContainer" class="message-container">
+                    <!-- Messages will be populated here -->
+                </div>
+
+                <div class="message-input-container">
+                    <form id="messageForm" class="message-form">
+                        <button type="button" id="uploadBtn" class="btn-icon" title="Upload Image">
+                            📎
+                        </button>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                        <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+                        <button type="submit" class="btn-send">Send</button>
+                    </form>
+                    <div id="uploadPreview" class="upload-preview" style="display: none;">
+                        <img id="previewImage" src="" alt="Preview">
+                        <div class="preview-info">
+                            <span id="previewFileName"></span>
+                            <input type="text" id="captionInput" placeholder="Add a caption (optional)">
+                            <div class="preview-actions">
+                                <button id="cancelUpload" class="btn btn-secondary">Cancel</button>
+                                <button id="confirmUpload" class="btn btn-primary">Send Image</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
