@@ -1,0 +1,72 @@
+# TUI Browser Configuration File
+# Copy this to config.toml and customize
+
+[engine]
+# Use Lynx for fast text rendering
+use_lynx = true
+
+# Playwright browser: chromium, firefox, or webkit
+playwright_browser = "chromium"
+
+# Run browser in headless mode
+headless = true
+
+[llm]
+# Enable LLM for intelligent merging
+enabled = true
+
+# Primary LLM provider: ollama, google, openai, anthropic
+provider = "ollama"
+
+# Model name for primary provider
+model = "llama3.2:3b"
+
+# Fallback provider (optional, used if primary fails)
+# fallback_provider = "google"
+# fallback_model = "gemini-1.5-flash"
+
+# API keys (optional, can also use environment variables)
+# api_key = "your-api-key-here"
+# fallback_api_key = "your-fallback-key"
+
+[llm.placement]
+# LLM for element placement
+provider = "ollama"
+model = "llama3.2:3b"
+
+[llm.merging]
+# LLM for content merging
+provider = "ollama"
+model = "llama3.2:3b"
+
+[llm.cleanup]
+# LLM for format cleanup (use smaller model)
+provider = "ollama"
+model = "qwen2.5:0.5b"
+
+[cache]
+# Enable caching of processed pages
+enabled = true
+
+# Cache directory
+directory = "~/.cache/tui-browser"
+
+# Cache TTL in seconds (1 hour)
+ttl = 3600
+
+[display]
+# Terminal width
+width = 80
+
+# Show images (if terminal supports it)
+show_images = false
+
+# External image viewer
+image_viewer = "auto"  # or "feh", "imgcat", etc
+
+[performance]
+# Fetch Lynx and Playwright in parallel
+parallel_fetch = true
+
+# Timeout in milliseconds
+timeout = 30000

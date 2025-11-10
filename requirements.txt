@@ -1,0 +1,28 @@
+# Core dependencies
+playwright>=1.40.0
+requests>=2.31.0
+
+# LLM providers (install based on what you'll use)
+# For local LLMs via Ollama (no extra package needed, uses requests)
+
+# For Google Gemini
+google-generativeai>=0.3.0
+
+# For OpenAI
+openai>=1.0.0
+
+# For Anthropic Claude
+anthropic>=0.7.0
+
+# Configuration file support
+tomli>=2.0.1; python_version < '3.11'
+
+# Optional: PDF rendering support
+# pdfplumber>=0.10.0
+
+# Optional: Better HTML parsing
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Optional: Readability extraction
+readability-lxml>=0.8.1
